@@ -18,7 +18,7 @@ namespace DotNetCoreSqlDb.Services
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionstrings);
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-            CloudQueue queue = queueClient.GetQueueReference("todoqueue");
+            CloudQueue queue = queueClient.GetQueueReference(Environment.GetEnvironmentVariable("QUE_NAME"));
             queue.CreateIfNotExists();
 
             var json = JsonConvert.SerializeObject(todo);
