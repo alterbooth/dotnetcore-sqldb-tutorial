@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DotNetCoreSqlDb.Models;
+using DotNetCoreSqlDb.Services;
 
 namespace DotNetCoreSqlDb.Controllers
 {
     public class TodosController : Controller
     {
         private readonly MyDatabaseContext _context;
+        private readonly IAzureQueueStroageService _azureQueue;
 
-        public TodosController(MyDatabaseContext context)
+        public TodosController(MyDatabaseContext context, IAzureQueueStroageService azureQueue)
         {
             _context = context;
+            _azureQueue = azureQueue;
         }
 
         // GET: Todos
@@ -59,6 +62,7 @@ namespace DotNetCoreSqlDb.Controllers
             {
                 _context.Add(todo);
                 await _context.SaveChangesAsync();
+                await _azureQueue.Send(todo);
                 return RedirectToAction(nameof(Index));
             }
             return View(todo);

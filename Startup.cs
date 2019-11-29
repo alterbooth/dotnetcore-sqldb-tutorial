@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using DotNetCoreSqlDb.Models;
+using DotNetCoreSqlDb.Services;
 
 namespace DotNetCoreSqlDb
 {
@@ -33,11 +34,25 @@ namespace DotNetCoreSqlDb
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            // Apprication Insights
+            var instrumentationKey = Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY");
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                services.AddApplicationInsightsTelemetry();
+            }
+
+            services.AddTransient<IAzureQueueStroageService, AzureQueueStroageService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            services.AddDbContext<MyDatabaseContext>(options =>
-                    options.UseSqlite("Data Source=localdatabase.db"));
+            // DB
+            string dbConnectionStrings = Environment.GetEnvironmentVariable("DB_CONNECTION_STRINGS");
+            if (!string.IsNullOrEmpty(dbConnectionStrings))
+                services.AddDbContext<MyDatabaseContext>(options =>
+                        options.UseSqlServer(dbConnectionStrings));
+            else
+                services.AddDbContext<MyDatabaseContext>(options =>
+                        options.UseSqlite("Data Source=localdatabase.db"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
